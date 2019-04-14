@@ -6,6 +6,7 @@ package com.yrk.spring.beans.support;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +26,9 @@ public class YBeanDefinitionReader {
 	
 	public YBeanDefinitionReader(String... locations) {
 		//通过URL定位找到对应的文件，转化为文件流，并读取
-		FileInputStream fis = null;
+		InputStream fis = null;
 		try {
-			fis = (FileInputStream) this.getClass().getClassLoader().getResourceAsStream(locations[0]);
+			fis = (InputStream) this.getClass().getClassLoader().getResourceAsStream(locations[0].replaceAll("classpath:", ""));
 			properties.load(fis);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -45,7 +46,7 @@ public class YBeanDefinitionReader {
 	}
 	
 	private void doScanner(String properies) {
-		URL url = this.getClass().getClassLoader().getResource("/" + properies.replaceAll("\\.", "/"));
+		URL url = this.getClass().getResource("/" + properies.replaceAll("\\.", "/"));
 		File baseFile = new File(url.getFile());
 		for (File file : baseFile.listFiles()) {
 			if (file.isDirectory()) {
@@ -67,30 +68,34 @@ public class YBeanDefinitionReader {
 
 	public List<YBeanDefinition> loadBeanDefinitions() {
 		List<YBeanDefinition> results = new ArrayList<YBeanDefinition>();
-		for (String beanClass : registyBeanClasses) {
-			YBeanDefinition beanDefinition = doCreateBeanDefinition(beanClass);
-			if (beanDefinition == null) {
-				continue;
+		try {
+			for (String beanClass : registyBeanClasses) {
+				Class<?> clazz = Class.forName(beanClass);
+				if (!clazz.isInterface()) {
+					//beanName有三种情况:
+	                //1、默认是类名首字母小写
+	                //2、自定义名字
+	                //3、接口注入
+	                results.add(doCreateBeanDefinition(toLowerFirstCase(clazz.getSimpleName()),clazz.getName()));
+	                results.add(doCreateBeanDefinition(clazz.getName(),clazz.getName()));
+	                Class<?>[] interfaces = clazz.getInterfaces();
+	                for (Class<?> interfaceClazz : interfaces) {
+	                	results.add(doCreateBeanDefinition(interfaceClazz.getName(),clazz.getName()));
+	                }
+				}
 			}
-			results.add(beanDefinition);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return results;
 	}
 	
-	private YBeanDefinition doCreateBeanDefinition(String className) {
-		try {
-				Class<?> clazz = Class.forName(className);
-				if (!clazz.isInterface()) {
-					YBeanDefinition beanDefinition = new YBeanDefinition();
-					beanDefinition.setBeanClassName(className);
-					beanDefinition.setFactoryBeanName(toLowerFirstCase(clazz.getSimpleName()));
-					beanDefinition.setLazyInit(false);
-					return beanDefinition;
-				}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+	private YBeanDefinition doCreateBeanDefinition(String factoryBeanName,String beanClassName) {
+		YBeanDefinition beanDefinition = new YBeanDefinition();
+		beanDefinition.setBeanClassName(beanClassName);
+        beanDefinition.setFactoryBeanName(factoryBeanName);
+		beanDefinition.setLazyInit(false);
+		return beanDefinition;
 	}
 	
 	private String toLowerFirstCase(String simpleName) {

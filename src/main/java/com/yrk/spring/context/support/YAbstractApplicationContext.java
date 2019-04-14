@@ -11,7 +11,7 @@ package com.yrk.spring.context.support;
 public abstract class YAbstractApplicationContext {
 
 	
-	public void refresh() {
+	public void refresh() throws Exception {
 		
 	}
 }

@@ -15,6 +15,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface YRequestMapping {
 	
-	String name() default "";
+	String value() default "";
 	
 }

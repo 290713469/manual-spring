@@ -9,12 +9,22 @@ package com.yrk.spring.beans;
  */
 public class YBeanWrapper {
 	
+	private Object wrappedInstane;
+	private Class<?> wrappedClass;
+	
+	
+	
+	public YBeanWrapper(Object wrappedInstane) {
+		this.wrappedInstane = wrappedInstane;
+		wrappedClass = this.wrappedInstane.getClass();
+	}
+
 	public Object getWrappedInstance() {
-		return null;
+		return wrappedInstane;
 	}
 
 	public Class<?> getWrappedClass() {
-		return null;
+		return wrappedClass;
 	}
 
 }
