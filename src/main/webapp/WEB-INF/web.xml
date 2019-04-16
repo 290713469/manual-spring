@@ -9,9 +9,10 @@
 		<servlet-name>manualmvc</servlet-name>
 		<servlet-class>com.yrk.spring.webmvc.servlet.ManualServlet</servlet-class>
 		<init-param>
-			<param-name>contextConfigLocation</param-name>
+			<param-name>contextConfigLocations</param-name>
 			<param-value>classpath:application.properties</param-value>
 		</init-param>
+		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>manualmvc</servlet-name>
