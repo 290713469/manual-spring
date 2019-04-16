@@ -4,7 +4,7 @@
 package com.yrk.spring.context.support;
 
 /**
- * IOCÈİÆ÷ÊµÏÖµÄ¶¥²ãÉè¼Æ
+ * IOCå®¹å™¨å®ç°çš„é¡¶å±‚è®¾è®¡
  * @author Runkai Yang
  *
  */

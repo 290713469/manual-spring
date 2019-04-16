@@ -3,14 +3,12 @@ package com.yrk.spring.webmvc.servlet;
 import java.lang.reflect.Method;
 import java.util.regex.Pattern;
 
-/**
- * Created by Tom on 2019/4/13.
- */
+
 public class YHandlerMapping {
 
-    private Object controller;	//保存方法对应的实�?
-    private Method method;		//保存映射的方�?
-    private Pattern pattern;    //URL的正则匹�?
+    private Object controller;	//保存方法对应的实�?
+    private Method method;		//保存映射的方�?
+    private Pattern pattern;    //URL的正则匹�?
 
     public YHandlerMapping(Pattern pattern,Object controller, Method method) {
         this.controller = controller;

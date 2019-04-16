@@ -21,6 +21,7 @@ import com.yrk.spring.beans.support.YBeanDefinitionReader;
 import com.yrk.spring.beans.support.YDefaultListableBeanFactory;
 
 /**
+ * IOCæ ¸å¿ƒå®¹å™¨
  * @author Runkai Yang
  *
  */
@@ -28,9 +29,9 @@ public class YApplicationContext extends YDefaultListableBeanFactory implements 
 
 	private String[] configLocations;
 	private YBeanDefinitionReader beanDefinitionReader;
-	//µ¥ÀıµÄIOCÈİÆ÷»º´æ
-	private Map<String, Object> singletonObjects = new HashMap<String, Object>();
-	//Í¨ÓÃIOCÈİÆ÷
+	//å•ä¾‹IOCå®¹å™¨ç¼“å­˜
+	private Map<String, Object> factoryBeanObjectCache = new HashMap<String, Object>();
+	//é€šç”¨çš„IOCå®¹å™¨
 	private Map<String, YBeanWrapper> factoryBeanInstanceCache = new HashMap<String, YBeanWrapper>();
 	
 	public YApplicationContext(String... configLocations) {
@@ -38,90 +39,28 @@ public class YApplicationContext extends YDefaultListableBeanFactory implements 
 		try {
 			refresh();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	@Override
-	public Object getBean(String name) {
-		//1. ³õÊ¼»¯
-		Object instance = null;
-		YBeanPostProcessor postProcessor = new YBeanPostProcessor();
-        postProcessor.postProcessBeforeInitialization(instance,name);
-        instance = instantiateBean(name, this.getBeanDefinitionMap().get(name));
-		
-		YBeanWrapper beanWrapper = new YBeanWrapper(instance);
-		
-		factoryBeanInstanceCache.put(name, beanWrapper);
-		
-		//2. ×¢Èë
-		populateBean(name, this.getBeanDefinitionMap().get(name), beanWrapper);
-		return factoryBeanInstanceCache.get(name).getWrappedInstance();
-	}
 	
-	private void populateBean(String name, YBeanDefinition beanDefinition, YBeanWrapper beanWrapper) {
-		Object instance = beanWrapper.getWrappedInstance();
-		if (!(instance.getClass().isAnnotationPresent(YController.class) || instance.getClass().isAnnotationPresent(YService.class))) {
-			return;
-		}
-		
-		Field[] fields = instance.getClass().getDeclaredFields();
-		for (Field field : fields) {
-			if (!field.isAnnotationPresent(YAutowired.class)) {
-				continue;
-			}
-			YAutowired autowired = field.getAnnotation(YAutowired.class);
-			String autoWiredBeanName = autowired.value().trim();
-			if ("".equals(autoWiredBeanName)) {
-				autoWiredBeanName = field.getType().getName();
-			}
-			field.setAccessible(true);
-			try {
-				field.set(instance, this.factoryBeanInstanceCache.get(autoWiredBeanName).getWrappedInstance());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private Object instantiateBean(String name, YBeanDefinition beanDefinition) {
-		//1. ÄÃµ½ÒªÊµÀı»¯¶ÔÏóµÄÀàÃû
-		String beanName = beanDefinition.getBeanClassName();
-		Object instance = null;
-	
-		//2. ·´ÉäÊµÀı»¯£¬µÃµ½¶ÔÏó
-		try {
-			if (this.singletonObjects.containsKey(beanName)) {
-				instance = this.singletonObjects.get(beanName);
-			} else {
-				Class<?> beanClass = Class.forName(beanName);
-				instance = beanClass.newInstance();
-				this.singletonObjects.put(beanName, instance);
-				this.singletonObjects.put(beanDefinition.getFactoryBeanName(), instance);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return instance;
-		
-	}
 
 	public void refresh()  throws Exception{
 		
-		// ¶¨Î»ÅäÖÃÎÄ¼ş
+		// 1. å®šä½ï¼Œ å®šä½é…ç½®æ–‡ä»¶
 		beanDefinitionReader = new YBeanDefinitionReader(this.configLocations);
-		//¼ÓÔØÅäÖÃÎÄ¼ş£¬É¨ÃèÏà¹ØµÄÀà£¬·â×°³ÉBeanDefinition
+		
+		// 2. åŠ è½½é…ç½®æ–‡ä»¶ï¼Œæ‰«æç›¸å…³çš„ç±»ï¼ŒæŠŠä»–ä»¬å°è£…æˆBeanDefinition
 		List<YBeanDefinition> beanDefinitions = beanDefinitionReader.loadBeanDefinitions();
 		
-		//×¢²á£¬°ÑÅäÖÃĞÅÏ¢·Åµ½IOCÈİÆ÷
+		// 3. æ³¨å†Œï¼ŒæŠŠé…ç½®ä¿¡æ¯æ”¾åˆ°IOCå®¹å™¨é‡Œé¢ (ä¼ªIOCå®¹å™¨)
 		doRegisterBeanDefinition(beanDefinitions);
 		
-		//°Ñ²»ÊÇÑÓ³Ù¼ÓÔØµÄÀà£¬ÌáÇ°³õÊ¼»¯
+		// 4. æŠŠä¸æ˜¯å»¶è¿ŸåŠ è½½çš„ç±»ï¼Œæå‰åˆå§‹åŒ–
 		doAutowried();
 	}
 
-	//Ö»´¦Àí·ÇÑÓ³Ù¼ÓÔØ
+	// åªå¤„ç†éå»¶è¿ŸåŠ è½½çš„ç±»
 	private void doAutowried() {
 		for (Entry<String, YBeanDefinition> entry : super.getBeanDefinitionMap().entrySet()) {
 			String factoryBeanName = entry.getKey();
@@ -135,13 +74,87 @@ public class YApplicationContext extends YDefaultListableBeanFactory implements 
 
 	        for (YBeanDefinition beanDefinition: beanDefinitions) {
 	            if(super.getBeanDefinitionMap().containsKey(beanDefinition.getFactoryBeanName())){
-	                throw new Exception("The ¡°" + beanDefinition.getFactoryBeanName() + "¡± is exists!!");
+	                throw new Exception("The " + beanDefinition.getFactoryBeanName() + " is exists!!");
 	            }
 	            super.getBeanDefinitionMap().put(beanDefinition.getFactoryBeanName(),beanDefinition);
 	        }
-	        //µ½ÕâÀïÎªÖ¹£¬ÈİÆ÷³õÊ¼»¯Íê±Ï
+	      //åˆ°è¿™é‡Œä¸ºæ­¢ï¼Œå®¹å™¨åˆå§‹åŒ–å®Œæ¯•
 	    }
 
+	//ä¾èµ–æ³¨å…¥ï¼Œä»è¿™é‡Œå¼€å§‹ï¼Œé€šè¿‡è¯»å–BeanDefinitionä¸­çš„ä¿¡æ¯
+	    //ç„¶åï¼Œé€šè¿‡åå°„æœºåˆ¶åˆ›å»ºä¸€ä¸ªå®ä¾‹å¹¶è¿”å›
+	    //Springåšæ³•æ˜¯ï¼Œä¸ä¼šæŠŠæœ€åŸå§‹çš„å¯¹è±¡æ”¾å‡ºå»ï¼Œä¼šç”¨ä¸€ä¸ªBeanWrapperæ¥è¿›è¡Œä¸€æ¬¡åŒ…è£…
+	    //è£…é¥°å™¨æ¨¡å¼ï¼š
+	    //1ã€ä¿ç•™åŸæ¥çš„OOPå…³ç³»
+	    //2ã€æˆ‘éœ€è¦å¯¹å®ƒè¿›è¡Œæ‰©å±•ï¼Œå¢å¼ºï¼ˆä¸ºäº†ä»¥åAOPæ‰“åŸºç¡€ï¼‰
+	 @Override
+		public Object getBean(String name) {
+			Object instance = null;
+			YBeanPostProcessor postProcessor = new YBeanPostProcessor();
+			instance = instantiateBean(name, this.getBeanDefinitionMap().get(name));
+			if (instance == null) {
+				return null;
+			}
+	        postProcessor.postProcessBeforeInitialization(instance,name);
+	        
+			
+			YBeanWrapper beanWrapper = new YBeanWrapper(instance);
+			
+			factoryBeanInstanceCache.put(name, beanWrapper);
+			
+			// æ³¨å…¥
+			populateBean(name, this.getBeanDefinitionMap().get(name), beanWrapper);
+			return factoryBeanInstanceCache.get(name).getWrappedInstance();
+		}
+		
+		private void populateBean(String name, YBeanDefinition beanDefinition, YBeanWrapper beanWrapper) {
+			Object instance = beanWrapper.getWrappedInstance();
+			if (!(instance.getClass().isAnnotationPresent(YController.class) || instance.getClass().isAnnotationPresent(YService.class))) {
+				return;
+			}
+			
+			Field[] fields = instance.getClass().getDeclaredFields();
+			for (Field field : fields) {
+				if (!field.isAnnotationPresent(YAutowired.class)) {
+					continue;
+				}
+				YAutowired autowired = field.getAnnotation(YAutowired.class);
+				String autoWiredBeanName = autowired.value().trim();
+				if ("".equals(autoWiredBeanName)) {
+					autoWiredBeanName = field.getType().getName();
+				}
+				field.setAccessible(true);
+				try {
+					if(this.factoryBeanInstanceCache.get(autoWiredBeanName) == null){ continue; }
+					field.set(instance, this.factoryBeanInstanceCache.get(autoWiredBeanName).getWrappedInstance());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		private Object instantiateBean(String name, YBeanDefinition beanDefinition) {
+			//1ã€æ‹¿åˆ°è¦å®ä¾‹åŒ–çš„å¯¹è±¡çš„ç±»å
+			String beanName = beanDefinition.getBeanClassName();
+			Object instance = null;
+		
+			//2ã€åå°„å®ä¾‹åŒ–ï¼Œå¾—åˆ°ä¸€ä¸ªå¯¹è±¡
+			try {
+				//å‡è®¾é»˜è®¤å°±æ˜¯å•ä¾‹
+				if (this.factoryBeanObjectCache.containsKey(beanName)) {
+					instance = this.factoryBeanObjectCache.get(beanName);
+				} else {
+					Class<?> beanClass = Class.forName(beanName);
+					instance = beanClass.newInstance();
+					this.factoryBeanObjectCache.put(beanName, instance);
+					this.factoryBeanObjectCache.put(beanDefinition.getFactoryBeanName(), instance);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return instance;
+			
+		}
 	 public String[] getBeanDefinitionNames() {
 	        return super.getBeanDefinitionMap().keySet().toArray(new  String[super.getBeanDefinitionMap().size()]);
 	    }

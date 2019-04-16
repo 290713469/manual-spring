@@ -44,90 +44,88 @@ public class ManualServlet extends HttpServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		
-		//1. ³õÊ¼»¯ApplicationContext
+		//1ã€åˆå§‹åŒ–ApplicationContext
 		applicationContext = new YApplicationContext(config.getInitParameter(CONTEXT_CONFIG_LOCATIONS));
-		//2. ³õÊ¼»¯spring mvc ¾Å´ó×é¼ş 
+		//2ã€åˆå§‹åŒ–Spring MVC ä¹å¤§ç»„ä»¶
 		initStrategies(applicationContext);
 	}
 	
 	protected void initStrategies(YApplicationContext context) {
+		//å¤šæ–‡ä»¶ä¸Šä¼ çš„ç»„ä»¶ï¼Œ å¦‚æœè¯·æ±‚ç±»å‹æ˜¯multipartï¼Œ å°†é€šè¿‡MultipartResolverè¿›è¡Œæ–‡ä»¶ä¸Šä¼ è§£æ
 		initMultipartResolver(context);
+		//åˆå§‹åŒ–æœ¬åœ°è¯­è¨€ç¯å¢ƒ
 		initLocaleResolver(context);
+		//åˆå§‹åŒ–æ¨¡æ¿å¤„ç†å™¨
 		initThemeResolver(context);
+		
+		// YHandlerMapping ç”¨æ¥ä¿å­˜Controllerä¸­é…ç½®çš„RequestMappingå’ŒMethodçš„ä¸€ä¸ªå¯¹åº”å…³ç³»
+		// é€šè¿‡handlerMapping, å°†è¯·æ±‚æ˜ å°„åˆ°å¤„ç†å™¨
 		initHandlerMappings(context);
+		//åˆå§‹åŒ–å‚æ•°é€‚é…å™¨ï¼Œ HandlerAdapterç”¨æ¥åŠ¨æ€åŒ¹é…Methodå‚æ•°ï¼Œ åŒ…æ‹¬ç±»å‹è½¬æ¢ï¼ŒåŠ¨æ€èµ‹å€¼
 		initHandlerAdapters(context);
+		//åˆå§‹åŒ–å¼‚å¸¸æ‹¦æˆªå™¨
 		initHandlerExceptionResolvers(context);
+		//ç›´æ¥è§£æè¯·æ±‚åˆ°è§†å›¾å
 		initRequestToViewNameTranslator(context);
+		
+		//é€šè¿‡viewResolverè§£æé€»è¾‘è§†å›¾åˆ°å…·ä½“è§†å›¾å®ç°
 		initViewResolvers(context);
+		// flashæ˜ å°„ç®¡ç†å™¨ï¼Œå‚æ•°ç¼“å­˜å™¨
 		initFlashMapManager(context);
 	}
 	
-	private void initFlashMapManager(YApplicationContext context) {
-		// TODO Auto-generated method stub
-		
-	}
+	
 
 	private void initViewResolvers(YApplicationContext context) {
-		//ÄÃµ½Ä£°åµÄ´æ·ÅÄ¿Â¼
+		// åœ¨é¡µé¢æ•²ä¸€ä¸ªhttp://localhost/first.htmlï¼Œ è§£å†³é¡µé¢åå­—å’Œæ¨¡æ¿æ–‡ä»¶å…³è”çš„é—®é¢˜
+		//æ‹¿åˆ°æ¨¡æ¿çš„å­˜æ”¾ç›®å½•
         String templateRoot = context.getConfig().getProperty("templateRoot");
         String templateRootPath = this.getClass().getClassLoader().getResource(templateRoot).getFile();
 
         File templateRootDir = new File(templateRootPath);
         String[] templates = templateRootDir.list();
         for (int i = 0; i < templates.length; i ++) {
-            //ÕâÀïÖ÷ÒªÊÇÎªÁË¼æÈİ¶àÄ£°å£¬ËùÓĞÄ£·ÂSpringÓÃList±£´æ
-            //ÔÚÎÒĞ´µÄ´úÂëÖĞ¼ò»¯ÁË£¬ÆäÊµÖ»ÓĞĞèÒªÒ»¸öÄ£°å¾Í¿ÉÒÔ¸ã¶¨
-             //Ö»ÊÇÎªÁË·ÂÕæ£¬ËùÓĞ»¹ÊÇ¸ãÁË¸öList
+        	//è¿™é‡Œä¸»è¦æ˜¯ä¸ºäº†å…¼å®¹å¤šæ¨¡æ¿ï¼Œæ‰€æœ‰æ¨¡ä»¿Springç”¨Listä¿å­˜
+            //åœ¨æˆ‘å†™çš„ä»£ç ä¸­ç®€åŒ–äº†ï¼Œå…¶å®åªæœ‰éœ€è¦ä¸€ä¸ªæ¨¡æ¿å°±å¯ä»¥æå®š
+             //åªæ˜¯ä¸ºäº†ä»¿çœŸï¼Œæ‰€æœ‰è¿˜æ˜¯æäº†ä¸ªList
             this.viewResolvers.add(new YViewResolver(templateRoot));
         }
 	}
 
-	private void initRequestToViewNameTranslator(YApplicationContext context) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void initHandlerExceptionResolvers(YApplicationContext context) {
-		// TODO Auto-generated method stub
-		
-	}
+	
 
 	private void initHandlerAdapters(YApplicationContext context) {
-		 //°ÑÒ»¸örequetÇëÇó±ä³ÉÒ»¸öhandler£¬²ÎÊı¶¼ÊÇ×Ö·û´®µÄ£¬×Ô¶¯Åäµ½handlerÖĞµÄĞÎ²Î
-
-        //¿ÉÏë¶øÖª£¬ËûÒªÄÃµ½HandlerMapping²ÅÄÜ¸É»î
-        //¾ÍÒâÎ¶×Å£¬ÓĞ¼¸¸öHandlerMapping¾ÍÓĞ¼¸¸öHandlerAdapter
+		// åœ¨åˆå§‹åŒ–é˜¶æ®µï¼Œæˆ‘ä»¬èƒ½åšçš„å°±æ˜¯è®²è¿™äº›å‚æ•°çš„åå­—æˆ–è€…ç±»å‹æŒ‰ç…§ä¸€å®šé¡ºåºä¿å­˜ä¸‹æ¥
+		// å› ä¸ºåé¢ç”¨åå°„è°ƒç”¨çš„æ—¶å€™ï¼Œä¼ çš„å½¢å‚æ˜¯ä¸€ä¸ªæ•°ç»„
+		// å¯ä»¥é€šè¿‡è®°å½•è¿™äº›å‚æ•°çš„ä½ç½®indexï¼Œä»æ•°ç»„ä¸­å¡«å€¼ï¼Œè¿™æ ·çš„è¯å°±å’Œå‚æ•°é¡ºåºæ— å…³äº†ã€‚
         for (YHandlerMapping handlerMapping : this.handlerMappings) {
             this.handlerAdapters.put(handlerMapping,new YHandlerAdapter());
         }
 	}
-
+	
+	// å°†Controllerä¸­é…ç½®çš„RequestMappingå’ŒMethodè¿›è¡Œä¸€ä¸€å¯¹åº”
 	private void initHandlerMappings(YApplicationContext context) {
-		
+		// è·å–å®¹å™¨ä¸­æ‰€æœ‰çš„å®ä¾‹
 		String[] beanDefinitionNames = context.getBeanDefinitionNames();
 		try {
 		for (String beanName : beanDefinitionNames) {
-			Object obj = context.getBean(beanName);
-			Class<?> clazz = obj.getClass();
+			Object beanInstance = context.getBean(beanName);
+			Class<?> clazz = beanInstance.getClass();
 			if (!clazz.isAnnotationPresent(YController.class)) {
 				continue;
 			}
 			
 			String baseUrl = "";
-            //»ñÈ¡ControllerµÄurlÅäÖÃ
             if(clazz.isAnnotationPresent(YRequestMapping.class)){
                 YRequestMapping requestMapping = clazz.getAnnotation(YRequestMapping.class);
                 baseUrl = requestMapping.value();
             }
 
-            //»ñÈ¡MethodµÄurlÅäÖÃ
             Method[] methods = clazz.getMethods();
             for (Method method : methods) {
 
-                //Ã»ÓĞ¼ÓRequestMapping×¢½âµÄÖ±½ÓºöÂÔ
                 if(!method.isAnnotationPresent(YRequestMapping.class)){ continue; }
 
-                //Ó³ÉäURL
                 YRequestMapping requestMapping = method.getAnnotation(YRequestMapping.class);
                 //  /demo/query
 
@@ -136,7 +134,7 @@ public class ManualServlet extends HttpServlet {
                 String regex = ("/" + baseUrl + "/" + requestMapping.value().replaceAll("\\*",".*")).replaceAll("/+", "/");
                 Pattern pattern = Pattern.compile(regex);
 
-                this.handlerMappings.add(new YHandlerMapping(pattern,obj,method));
+                this.handlerMappings.add(new YHandlerMapping(pattern,beanInstance,method));
 //                log.info("Mapped " + regex + "," + method);
             }
 		}
@@ -145,21 +143,12 @@ public class ManualServlet extends HttpServlet {
 		}
 		
 	}
-
-	private void initThemeResolver(YApplicationContext context) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void initLocaleResolver(YApplicationContext context) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void initMultipartResolver(YApplicationContext context) {
-		// TODO Auto-generated method stub
-		
-	}
+	private void initFlashMapManager(YApplicationContext context) {}
+	private void initRequestToViewNameTranslator(YApplicationContext context) {}
+	private void initHandlerExceptionResolvers(YApplicationContext context) {}
+	private void initThemeResolver(YApplicationContext context) {}
+	private void initLocaleResolver(YApplicationContext context) {}
+	private void initMultipartResolver(YApplicationContext context) {}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -180,34 +169,46 @@ public class ManualServlet extends HttpServlet {
 	}
 	
 	private void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws Exception{
-        //1¡¢Í¨¹ı´ÓrequestÖĞÄÃµ½URL£¬È¥Æ¥ÅäÒ»¸öHandlerMapping
+		//1ã€é€šè¿‡ä»requestä¸­æ‹¿åˆ°URLï¼Œå»åŒ¹é…ä¸€ä¸ªHandlerMapping
         YHandlerMapping handler = getHandler(req);
 
         if(handler == null){
-            //new ModelAndView("404")
+        	processDispatchResult(req,resp,new YModelAndView("404"));
             return;
         }
 
-        //2¡¢×¼±¸µ÷ÓÃÇ°µÄ²ÎÊı
+      //2ã€å‡†å¤‡è°ƒç”¨å‰çš„å‚æ•°
         YHandlerAdapter ha = getHandlerAdapter(handler);
 
-        //3¡¢ÕæÕıµÄµ÷ÓÃ·½·¨,·µ»ØModelAndView´æ´¢ÁËÒª´©Ò³ÃæÉÏÖµ£¬ºÍÒ³ÃæÄ£°åµÄÃû³Æ
+      //3ã€çœŸæ­£çš„è°ƒç”¨æ–¹æ³•,è¿”å›ModelAndViewå­˜å‚¨äº†è¦ç©¿é¡µé¢ä¸Šå€¼ï¼Œå’Œé¡µé¢æ¨¡æ¿çš„åç§°
         YModelAndView mv = ha.handle(req,resp,handler);
 
-
+      //è¿™ä¸€æ­¥æ‰æ˜¯çœŸæ­£çš„è¾“å‡º
         processDispatchResult(req, resp, mv);
 
 
     }
 	
-	private void processDispatchResult(HttpServletRequest req, HttpServletResponse resp, YModelAndView mv) {
-        //°Ñ¸øÎÒµÄModleAndView±ä³ÉÒ»¸öHTML¡¢OuputStream¡¢json¡¢freemark¡¢veolcity
+	private void processDispatchResult(HttpServletRequest req, HttpServletResponse resp, YModelAndView mv) throws Exception{
+		//æŠŠç»™æˆ‘çš„ModleAndViewå˜æˆä¸€ä¸ªHTMLã€OuputStreamã€jsonã€freemarkã€veolcity
         //ContextType
         if(null == mv){return;}
+      //å¦‚æœModelAndViewä¸ä¸ºnullï¼Œæ€ä¹ˆåŠï¼Ÿ
+        if(this.viewResolvers.isEmpty()){return;}
 
+        for (YViewResolver viewResolver : this.viewResolvers) {
+            YView view = viewResolver.resolveViewName(mv.getViewName(),null);
+            view.render(mv.getModel(),req,resp);
+            return;
+        }
     }
 
-    private YHandlerAdapter getHandlerAdapter(YHandlerMapping handlerMapping) {
+    private YHandlerAdapter getHandlerAdapter(YHandlerMapping handler) {
+    	if(this.handlerAdapters.isEmpty()){return null;}
+        YHandlerAdapter ha = this.handlerAdapters.get(handler);
+        if(ha.supports(handler)){
+            return ha;
+        }
         return null;
     }
 
@@ -222,7 +223,7 @@ public class ManualServlet extends HttpServlet {
         for (YHandlerMapping handler : this.handlerMappings) {
             try{
                 Matcher matcher = handler.getPattern().matcher(url);
-                //Èç¹ûÃ»ÓĞÆ¥ÅäÉÏ¼ÌĞøÏÂÒ»¸öÆ¥Åä
+              //å¦‚æœæ²¡æœ‰åŒ¹é…ä¸Šç»§ç»­ä¸‹ä¸€ä¸ªåŒ¹é…
                 if(!matcher.matches()){ continue; }
 
                 return handler;

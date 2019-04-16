@@ -4,12 +4,17 @@
 package com.yrk.spring.beans.factory;
 
 /**
- * µ¥Àı¹¤³§µÄ¶¥²ãÉè¼Æ
+ * å•ä¾‹å·¥å‚çš„é¡¶å±‚è®¾è®¡
  * @author runkaiyang
  *
  */
 public interface YBeanFactory {
 	
+	/**
+	 * æ ¹æ®beanNameä»IOCå®¹å™¨ä¸­è·å–ä¸€ä¸ªå®ä¾‹bean
+	 * @param name
+	 * @return
+	 */
 	Object getBean(String name);
 
 }
